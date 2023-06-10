@@ -1,5 +1,5 @@
 import string
-from replit import db
+import sqlite3 as sql
 from flask import Flask, render_template, redirect, request
 from flask_cors import CORS
 import uuid
@@ -9,7 +9,10 @@ CORS(
 )  #This is simple, makes it work, but is basically begging for an XSS attack. Secure or tell them we would secure it later
 #make it a ctf problem lmao
 ok_chars = string.ascii_letters + string.digits
-
+listingDB = "db/listings.sqlite"
+with sql.connect(listingDB) as listings:
+  cursor = listings.cursor()
+  cursor.execute('CREATE TABLE IF NOT EXISTS listings(name, price, description, contact)')
 @app.route('/')  # What happens when the user visits the site
 def base_page():
   return render_template('main.html', )
@@ -25,9 +28,9 @@ def page_3():
   return "pong"
 
 
-@app.route('/sell', methods=['POST'])
+@app.route('/sell')
 def createlisting():
-  return render_template("sell.html")
+  return render_template("sell.html",)
 
 
 @app.route("/create", methods=['POST'])
@@ -45,13 +48,13 @@ def create():
   datathing = [price, description, info]
   try:
     f = open(
-      "/home/runner/traysbud9bab9usdbackend/templates/" + pagename + ".html",
+      "templates/" + pagename + ".html",
       "x")
     html_template = f"""
 			<html>
 			<head>
 				<title>Buyzy - Buy Easy</title>
-				<link rel="stylesheet" type="text/css"            href="/static/styles.css"/>
+				<link rel="stylesheet" type="text/css" href="/static/styles.css"/>
 			</head>    
 			<body>
 				<header>
@@ -59,7 +62,7 @@ def create():
         <nav>
           <ul>
             <li><img src="/static/LOGO.png" width="50" height="50"></li>
-            <li><a href="https://traysbud9bab9usdbackend.totoeevee.repl.co/#">Home</a></li>
+            <li><a href="#">Home</a></li>
             <li><a href="sell">Sell</a></li>
             <li><a href="listings">Listings</a></li>
           </ul>
@@ -78,13 +81,16 @@ def create():
 			"""
     f.write(html_template)
     f.close()
-    db[pagename] = datathing
-    g = open("/home/runner/traysbud9bab9usdbackend/templates/listings.html",
+    with sql.connect(listingDB) as listings:
+      cursor = listings.cursor()
+      cursor.execute('INSERT INTO listings VALUES (?, ?, ?, ?)', (pagename, price, description, info))
+      listings.commit()
+    g = open("templates/listings.html",
              "a")
     htmla = f"""
 		<div id = "listing">
 		<header id = '{pagename}'>
-		<h2><a href = "https://traysbud9bab9usdbackend.totoeevee.repl.co/{pagename}">{pagename}</a></h2>
+		<h2><a href = "{pagename}">{pagename}</a></h2>
 		<h3>${price}</h3>
 		</header>
 		</div>
