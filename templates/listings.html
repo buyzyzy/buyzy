@@ -20,8 +20,12 @@
     <div id="title">
          Available Listings:
 		<div id="searchbar">
-        <form action= target="_self" >
-            <input type="text" placeholder="Search for an item...">
+        <form method="POST" action= {{url_for('search')}} >
+          {{form.hidden_tag()}}
+          <input type="search" placeholder="Search for an item..." aria-label="Search" name="searched">
+          <button type="submit">
+            search
+          </button>
         </form>
     </div>
     <br>
